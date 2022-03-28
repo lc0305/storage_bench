@@ -31,8 +31,7 @@ static int write_file(const char *file_path, const uint8_t *buf,
       NULL, buf_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
   if (file_map == MAP_FAILED)
     return -1;
-  file_map[0] = 1;
-  // memcpy(file_map, buf, buf_size);
+  memcpy(file_map, buf, buf_size);
   fd_mmapaddr_tuple->fd = fd;
   fd_mmapaddr_tuple->mmapaddr = file_map;
   return 0;
