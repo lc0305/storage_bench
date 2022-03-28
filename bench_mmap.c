@@ -85,9 +85,9 @@ void *worker_thread_mmap(void *_ctx) {
     fprintf(stderr, "Error reading cpu usage.\n");
     goto err;
   }
-  atomic_fetch_add_explicit(&total_cpu_usr, cpu_usage.usr,
+  atomic_fetch_add_explicit(&total_cpu_usr, cpu_usage.usr_usec,
                             memory_order_relaxed);
-  atomic_fetch_add_explicit(&total_cpu_sys, cpu_usage.sys,
+  atomic_fetch_add_explicit(&total_cpu_sys, cpu_usage.sys_usec,
                             memory_order_relaxed);
   goto ret;
 err:

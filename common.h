@@ -53,7 +53,7 @@ static inline uint64_t gettid() {
 }
 
 typedef struct cpu_usage {
-  uint64_t usr, sys;
+  uint64_t usr_usec, sys_usec;
 } cpu_usage_t;
 
 #if defined(__linux__) && 0
@@ -74,8 +74,10 @@ static inline int read_cpu(const uint64_t tid, cpu_usage_t *const cpu_usage) {
                "%*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %lu %lu",
                &utime, &stime) == 2) {
       const uint64_t clk_ticks_per_s = sysconf(_SC_CLK_TCK);
-      cpu_usage->usr = utime / clk_ticks_per_s;
-      cpu_usage->sys = stime / clk_ticks_per_s;
+      cpu_usage->usr_usec =
+          utime / (clk_ticks_per_s / MICROSECONDS_IN_ONE_SECOND);
+      cpu_usage->sys_usec =
+          stime / (clk_ticks_per_s / MICROSECONDS_IN_ONE_SECOND);
       close(proc_fd);
       return 0;
     }
@@ -95,9 +97,9 @@ static inline int read_cpu(const uint64_t _tid, cpu_usage_t *const cpu_usage) {
   const timeval utime = usage.ru_utime, stime = usage.ru_stime;
   assert((ULONG_MAX / MICROSECONDS_IN_ONE_SECOND) > (uint64_t)utime.tv_sec);
   assert((ULONG_MAX / MICROSECONDS_IN_ONE_SECOND) > (uint64_t)stime.tv_sec);
-  cpu_usage->usr =
+  cpu_usage->usr_usec =
       (uint64_t)utime.tv_sec * MICROSECONDS_IN_ONE_SECOND + utime.tv_usec;
-  cpu_usage->sys =
+  cpu_usage->sys_usec =
       (uint64_t)stime.tv_sec * MICROSECONDS_IN_ONE_SECOND + stime.tv_usec;
   return 0;
 }
@@ -109,8 +111,8 @@ static inline int read_cpu(const uint64_t tid, cpu_usage_t *const cpu_usage) {
   if (PROC_PIDTHREADINFO_SIZE == proc_pidinfo(getpid(), PROC_PIDTHREADID64INFO,
                                               tid, &pth,
                                               PROC_PIDTHREADINFO_SIZE)) {
-    cpu_usage->usr = pth.pth_user_time / 1000;
-    cpu_usage->sys = pth.pth_system_time / 1000;
+    cpu_usage->usr_usec = pth.pth_user_time / 1000;
+    cpu_usage->sys_usec = pth.pth_system_time / 1000;
     return 0;
   }
   return -1;
