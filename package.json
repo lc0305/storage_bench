@@ -1,0 +1,12 @@
+{
+  "name": "storage_bench",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bench.js",
+  "scripts": {
+    "bench": "node bench.js"
+  },
+  "module": "commonjs",
+  "author": "",
+  "license": "ISC"
+}
