@@ -9,12 +9,16 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
+#ifdef __linux__
+#include <sys/resource.h>
+#endif
 #ifdef __MACH__
 #include <libproc.h>
 #endif
 
 #define PAGE_SIZE (1 << 12)
-#define NANOSECONDS_IN_ONE_SECOND 1000000000
+#define MICROSECONDS_IN_ONE_SECOND 1000000
+#define NANOSECONDS_IN_ONE_SECOND (MICROSECONDS_IN_ONE_SECOND * 1000)
 #define MAX_NUM_THREADS 64
 #define OPEN_DIRECT (1 << 0)
 #define OPEN_SYNC (1 << 1)
@@ -31,8 +35,7 @@ typedef struct bench_args {
 
 extern bench_args_t bench_args;
 extern pthread_t threads[MAX_NUM_THREADS];
-extern struct timespec start;
-extern struct timespec stop;
+extern struct timespec start, stop;
 extern _Atomic size_t iteration;
 extern _Atomic bool is_started;
 extern _Atomic uint64_t total_cpu_usr;
@@ -42,7 +45,7 @@ extern uint8_t *buf;
 static inline uint64_t gettid() {
 #ifdef __linux__
   const pid_t tid = syscall(SYS_gettid);
-#elif __MACH__
+#elif defined(__MACH__)
   uint64_t tid;
   pthread_threadid_np(NULL, &tid);
 #endif
@@ -53,7 +56,7 @@ typedef struct cpu_usage {
   uint64_t usr, sys;
 } cpu_usage_t;
 
-#ifdef __linux__
+#if defined(__linux__) && 0
 static inline int read_cpu(const uint64_t tid, cpu_usage_t *const cpu_usage) {
   char proc_file_path_buf[256];
   snprintf(proc_file_path_buf, sizeof(proc_file_path_buf),
@@ -81,6 +84,22 @@ err_read:
   close(proc_fd);
 err_open:
   return -1;
+}
+#endif
+
+#ifdef __linux__
+static inline int read_cpu(const uint64_t _tid, cpu_usage_t *const cpu_usage) {
+  struct rusage usage;
+  if (getrusage(RUSAGE_THREAD, &usage) < 0)
+    return -1;
+  const timeval utime = usage.ru_utime, stime = usage.ru_stime;
+  assert((ULONG_MAX / MICROSECONDS_IN_ONE_SECOND) > (uint64_t)utime.tv_sec);
+  assert((ULONG_MAX / MICROSECONDS_IN_ONE_SECOND) > (uint64_t)stime.tv_sec);
+  cpu_usage->usr =
+      (uint64_t)utime.tv_sec * MICROSECONDS_IN_ONE_SECOND + utime.tv_usec;
+  cpu_usage->sys =
+      (uint64_t)stime.tv_sec * MICROSECONDS_IN_ONE_SECOND + stime.tv_usec;
+  return 0;
 }
 #endif
 

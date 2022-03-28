@@ -115,8 +115,7 @@ bench_args_t bench_args = (bench_args_t){
     .flags = WRITE_VFS,
 };
 pthread_t threads[MAX_NUM_THREADS];
-struct timespec start = {0};
-struct timespec stop = {0};
+struct timespec start = {0}, stop = {0};
 _Atomic size_t iteration = 0;
 _Atomic bool is_started = false;
 _Atomic uint64_t total_cpu_usr = 0;
