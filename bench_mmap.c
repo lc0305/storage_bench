@@ -15,7 +15,7 @@ static int write_file(const char *file_path, const uint8_t *buf,
   if (posix_fallocate(fd, 0, buf_size) < 0)
     return -1;
 #endif
-#if __MACH__
+#ifdef __MACH__
   // darwin (MACH) does not implement posix_fallocate
   // this is an equivalent using fcntl
   fstore_t store = {F_ALLOCATECONTIG, F_PEOFPOSMODE, 0, buf_size};
