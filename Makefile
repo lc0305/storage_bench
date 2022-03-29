@@ -1,7 +1,7 @@
-CFLAGS = -Wall -Wextra -Ofast -lpthread
+CFLAGS = -Wall -Wextra -Ofast
 
 main: fdqueue.o bench_vfs.o bench_mmap.o bench_vfs.h bench_mmap.h common.h
-	$(CC) $(CFLAGS) fdqueue.o bench_vfs.o bench_mmap.o main.c -o storage_bench
+	$(CC) $(CFLAGS) -lpthread fdqueue.o bench_vfs.o bench_mmap.o main.c -o storage_bench
 
 bench_vfs.o: fdqueue.h bench_vfs.c bench_vfs.h common.h
 	$(CC) $(CFLAGS) -c bench_vfs.c -o bench_vfs.o
