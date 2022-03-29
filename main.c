@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <sys/resource.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
@@ -137,6 +138,14 @@ static inline int run_bench(void *(*worker_thread)(void *)) {
 
   mkdirat(AT_FDCWD, "./files", S_IRWXU | S_IRWXG | S_IROTH);
 
+  {
+    struct rlimit limit;
+    limit.rlim_cur = 65535;
+    limit.rlim_max = 65535;
+    if (setrlimit(RLIMIT_NOFILE, &limit) < 0)
+      return 1;
+  }
+
   buf = (uint8_t *)mmap(NULL, bench_args.file_size, PROT_READ | PROT_WRITE,
                         MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
@@ -168,8 +177,7 @@ static inline int run_bench(void *(*worker_thread)(void *)) {
   char file_path[256];
   for (size_t i = 0; i < bench_args.num_files; ++i) {
     sprintf(file_path, "./files/bench-%lu", i);
-    if (unlink(file_path) < 0)
-      goto err;
+    unlink(file_path);
   }
 
   munmap(buf, bench_args.file_size);

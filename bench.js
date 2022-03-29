@@ -80,9 +80,8 @@ function round(value, decimalPoints) {
 }
 
 (async function main() {
-  const ratio = 0,
-    buf = initBuf(1 << (30 - ratio)),
-    iterations = 30 << ratio,
+  const buf = initBuf(1 << 16),
+    iterations = 1024,
     files = [],
     { hrtime } = process;
 
