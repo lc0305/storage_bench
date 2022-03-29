@@ -56,8 +56,7 @@ void *worker_thread_vfs(void *_ctx) {
 
     if (flags & VERBOSE) {
       write(STDOUT_FILENO, log_buf,
-            sprintf(log_buf, "tid %llu is now writing %s.\n", tid, file_path) +
-                1);
+            sprintf(log_buf, "tid %llu is now writing %s.\n", tid, file_path));
     }
 
     const int fd = write_file(file_path, buf, bench_args.file_size, flags);
