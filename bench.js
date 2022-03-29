@@ -3,7 +3,7 @@ const fs = require("fs");
 function initBuf(bufSize) {
   const buf = new Uint8Array(bufSize);
   for (let i = 0; i < buf.length; ++i) {
-    buf[i] = Math.round(Math.random() * 255) & 0xFF;
+    buf[i] = Math.round(Math.random() * 255) & 0xff;
   }
   return buf;
 }
@@ -57,8 +57,8 @@ function close(fd) {
 }
 
 async function writeFile(filePath, buf) {
-  const fd = await open(filePath, "w");
-  const bufSize = buf.length;
+  const fd = await open(filePath, "w"),
+    bufSize = buf.length;
 
   let nbytes,
     cursor = 0;
@@ -80,27 +80,28 @@ function round(value, decimalPoints) {
 }
 
 (async function main() {
-  const ratio = 0;
-  const buf = initBuf(1 << (30 - ratio));
-  const iterations = (30 << ratio);
-  const files = [];
+  const ratio = 0,
+    buf = initBuf(1 << (30 - ratio)),
+    iterations = 30 << ratio,
+    files = [],
+    { hrtime } = process;
 
   for (let i = 0; i < iterations; ++i) {
     files.push(`./files/bench-${i}`);
   }
 
-  const start = process.hrtime.bigint();
+  const start = hrtime.bigint();
 
   await Promise.all(
     files.map((filePath) =>
       (async () => {
         const fd = await writeFile(filePath, buf);
-        await closeFile(fd, false);
+        await closeFile(fd, true);
       })()
     )
   );
 
-  const stop = process.hrtime.bigint();
+  const stop = hrtime.bigint();
 
   // unlink written files
   await Promise.all(

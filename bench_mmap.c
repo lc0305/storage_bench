@@ -1,10 +1,5 @@
 #include "bench_mmap.h"
 
-typedef struct {
-  int fd;
-  void *mmapaddr;
-} fd_mmapaddr_tuple_t;
-
 static int write_file(const char *file_path, const uint8_t *buf,
                       const size_t buf_size,
                       fd_mmapaddr_tuple_t *fd_mmapaddr_tuple) {
@@ -51,23 +46,24 @@ static int close_file(const int fd, uint8_t *file_map, const size_t file_size,
 }
 
 void *worker_thread_mmap(void *_ctx) {
+  fd_queue_t *const fdqueue = new_fdqueue();
   const uint64_t tid = getthid();
 
-  char file_path[256];
-  char log_buf[512];
-  fd_mmapaddr_tuple_t fd_mmapaddr_tuple;
-  size_t i;
   // spinning and waiting for all threads to start
   while (atomic_load_explicit(&is_started, memory_order_relaxed) == false)
     ;
-  while ((i = atomic_fetch_add_explicit(&iteration, 1, memory_order_relaxed)) <
+
+  char file_path[256], log_buf[512];
+  const int flags = bench_args.flags;
+  fd_mmapaddr_tuple_t fd_mmapaddr_tuple;
+  ssize_t i;
+  while ((i = atomic_fetch_add_explicit(&iteration_write, 1,
+                                        memory_order_relaxed)) <
          bench_args.num_files) {
     if (i == 0)
       clock_gettime(CLOCK_MONOTONIC, &start);
 
     sprintf(file_path, "./files/bench-%lu", i);
-
-    const int flags = bench_args.flags;
 
     if (flags & VERBOSE) {
       write(STDOUT_FILENO, log_buf,
@@ -78,12 +74,27 @@ void *worker_thread_mmap(void *_ctx) {
         write_file(file_path, buf, bench_args.file_size, &fd_mmapaddr_tuple);
     if (ret < 0)
       goto err;
-    if (close_file(fd_mmapaddr_tuple.fd, fd_mmapaddr_tuple.mmapaddr,
-                   bench_args.file_size, flags) < 0)
-      goto err;
+    fdqueue_push(fdqueue, fd_mmapaddr_tuple);
     if (i == (bench_args.num_files - 1))
       clock_gettime(CLOCK_MONOTONIC, &stop);
   }
+
+  for (fd_mmapaddr_tuple_t *iter = fdqueue_begin(fdqueue);
+       iter != fdqueue_end(fdqueue); ++iter) {
+    fd_mmapaddr_tuple = *iter;
+    if (flags & VERBOSE) {
+      write(STDOUT_FILENO, log_buf,
+            sprintf(log_buf, "tid %llu is now closing fd %d.\n", tid,
+                    fd_mmapaddr_tuple.fd));
+    }
+    if (close_file(fd_mmapaddr_tuple.fd, fd_mmapaddr_tuple.mmapaddr,
+                   bench_args.file_size, flags) < 0)
+      goto err;
+    if (atomic_fetch_add_explicit(&iteration_close, 1, memory_order_relaxed) ==
+        (bench_args.num_files - 1))
+      clock_gettime(CLOCK_MONOTONIC, &stop);
+  }
+
   cpu_usage_t cpu_usage;
   if (read_cpu(tid, &cpu_usage)) {
     fprintf(stderr, "Error reading cpu usage.\n");
@@ -98,5 +109,6 @@ err:
   fprintf(stderr, "something went wrong :(\n");
   perror(NULL);
 ret:
+  free_fdqueue(fdqueue);
   return NULL;
 }

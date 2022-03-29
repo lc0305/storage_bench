@@ -8,6 +8,7 @@
 #else
 #include <fcntl.h>
 #endif
+#include "fdqueue.h"
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdatomic.h>

@@ -47,7 +47,8 @@ typedef struct bench_args {
 extern bench_args_t bench_args;
 extern pthread_t threads[MAX_NUM_THREADS];
 extern struct timespec start, stop;
-extern _Atomic size_t iteration;
+extern _Atomic ssize_t iteration_write;
+extern _Atomic ssize_t iteration_close;
 extern _Atomic bool is_started;
 extern _Atomic uint64_t total_cpu_usr;
 extern _Atomic uint64_t total_cpu_sys;

@@ -122,7 +122,8 @@ bench_args_t bench_args = (bench_args_t){
 };
 pthread_t threads[MAX_NUM_THREADS];
 struct timespec start = {0}, stop = {0};
-_Atomic size_t iteration = 0;
+_Atomic ssize_t iteration_write = 0;
+_Atomic ssize_t iteration_close = 0;
 _Atomic bool is_started = false;
 _Atomic uint64_t total_cpu_usr = 0;
 _Atomic uint64_t total_cpu_sys = 0;
