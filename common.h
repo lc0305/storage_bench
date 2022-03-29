@@ -37,6 +37,7 @@
 #define WRITE_VFS (1 << 4)
 #define WRITE_MMAP (1 << 5)
 #define USE_URING (1 << 6)
+#define VERBOSE (1 << 7)
 
 typedef struct bench_args {
   int num_threads, num_files, flags;

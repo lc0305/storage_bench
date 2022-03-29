@@ -40,6 +40,7 @@ void *worker_thread_vfs(void *_ctx) {
   const uint64_t tid = getthid();
 
   char file_path[256];
+  char log_buf[512];
   // spinning and waiting for all threads to start
   while (atomic_load_explicit(&is_started, memory_order_relaxed) == false)
     ;
@@ -51,9 +52,14 @@ void *worker_thread_vfs(void *_ctx) {
 
     sprintf(file_path, "./files/bench-%lu", i);
 
-    printf("tid %llu is now writing %s.\n", tid, file_path);
-    fflush(stdout);
     const int flags = bench_args.flags;
+
+    if (flags & VERBOSE) {
+      write(STDOUT_FILENO, log_buf,
+            sprintf(log_buf, "tid %llu is now writing %s.\n", tid, file_path) +
+                1);
+    }
+
     const int fd = write_file(file_path, buf, bench_args.file_size, flags);
     if (fd < 0)
       goto err;

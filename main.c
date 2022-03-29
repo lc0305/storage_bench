@@ -12,7 +12,7 @@
 #include <time.h>
 #include <unistd.h>
 
-static const char *const shortopts = "Df:n:FhmMSt:uv";
+static const char *const shortopts = "Df:n:FhmMSt:uVv";
 static const struct option long_options[] = {
     {"direct", no_argument, NULL, 'D'},
     {"filesize", required_argument, NULL, 'f'},
@@ -24,6 +24,7 @@ static const struct option long_options[] = {
     {"sync", no_argument, NULL, 'S'},
     {"threads", required_argument, NULL, 't'},
     {"uring", no_argument, NULL, 'u'},
+    {"verbose", no_argument, NULL, 'V'},
     {"vfs", no_argument, NULL, 'v'},
     {NULL, 0, NULL, 0},
 };
@@ -31,8 +32,7 @@ static const char *const usage =
     "Usage: %s [--direct (-D)] [--filesize (-f) <log2 of filesize in bytes>] "
     "[--filesnum (-n) <number of files>] [--fsync (-F)] [--help (-h)] [--mmap "
     "(-m)] [--msync (-M)] [--sync (-S)] [--threads (-t) <number threads>] "
-    "[--uring "
-    "(-u)] [--vfs (-v)]\n";
+    "[--uring (-u)] [--verbose (-V)] [--vfs (-v)]\n";
 
 static inline int read_bench_args(const int argc, char *const *argv,
                                   bench_args_t *const bench_args) {
@@ -76,6 +76,9 @@ static inline int read_bench_args(const int argc, char *const *argv,
     case 'u':
       bench_args->flags &= ~(WRITE_MMAP | CLOSE_MSYNC);
       bench_args->flags |= USE_URING;
+      break;
+    case 'V':
+      bench_args->flags |= VERBOSE;
       break;
     case 'v':
       bench_args->flags &= ~(WRITE_MMAP | CLOSE_MSYNC);
