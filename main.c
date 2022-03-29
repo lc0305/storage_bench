@@ -143,6 +143,8 @@ static inline int run_bench(void *(*worker_thread)(void *)) {
     goto err;
 
   // trigger page fault
+  // and insert random numbers to alleviate the problem
+  // of zero store optimzations
   for (size_t i = 0; i < bench_args.file_size; i += PAGE_SIZE) {
     buf[i] = ((uint8_t)rand());
   }
