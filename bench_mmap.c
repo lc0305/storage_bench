@@ -51,7 +51,7 @@ static int close_file(const int fd, uint8_t *file_map, const size_t file_size,
 }
 
 void *worker_thread_mmap(void *_ctx) {
-  const uint64_t tid = gettid();
+  const uint64_t tid = getthid();
 
   char file_path[256];
   fd_mmapaddr_tuple_t fd_mmapaddr_tuple;

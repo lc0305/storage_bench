@@ -4,4 +4,4 @@ compile_commands.json
 *.o
 storage_bench
 .DS_Store
-./files/*
+/files/

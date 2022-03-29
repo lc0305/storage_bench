@@ -1,20 +1,30 @@
 #ifndef __BENCH_COMMON_H__
 #define __BENCH_COMMON_H__
 
-#include <assert.h>
-#include <fcntl.h>
-#include <inttypes.h>
-#include <limits.h>
-#include <pthread.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <unistd.h>
+#define HAVE_ARCH_STRUCT_FLOCK
+
 #ifdef __linux__
-#include <sys/resource.h>
+#define _GNU_SOURCE
+#include <linux/fcntl.h>
+#else
+#include <fcntl.h>
 #endif
+
 #ifdef __MACH__
 #include <libproc.h>
 #endif
+
+#include <assert.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <pthread.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <sys/resource.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define PAGE_SIZE (1 << 12)
 #define MICROSECONDS_IN_ONE_SECOND 1000000
@@ -42,7 +52,7 @@ extern _Atomic uint64_t total_cpu_usr;
 extern _Atomic uint64_t total_cpu_sys;
 extern uint8_t *buf;
 
-static inline uint64_t gettid() {
+static inline uint64_t getthid() {
 #ifdef __linux__
   const pid_t tid = syscall(SYS_gettid);
 #elif defined(__MACH__)
@@ -94,7 +104,7 @@ static inline int read_cpu(const uint64_t _tid, cpu_usage_t *const cpu_usage) {
   struct rusage usage;
   if (getrusage(RUSAGE_THREAD, &usage) < 0)
     return -1;
-  const timeval utime = usage.ru_utime, stime = usage.ru_stime;
+  const struct timeval utime = usage.ru_utime, stime = usage.ru_stime;
   assert((ULONG_MAX / MICROSECONDS_IN_ONE_SECOND) > (uint64_t)utime.tv_sec);
   assert((ULONG_MAX / MICROSECONDS_IN_ONE_SECOND) > (uint64_t)stime.tv_sec);
   cpu_usage->usr_usec =

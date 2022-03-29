@@ -1,5 +1,4 @@
 #include "bench_vfs.h"
-#include "common.h"
 
 static int write_file(const char *file_path, const uint8_t *buf,
                       const size_t buf_size, const int flags) {
@@ -38,7 +37,7 @@ static int close_file(const int fd, const int flags) {
 }
 
 void *worker_thread_vfs(void *_ctx) {
-  const uint64_t tid = gettid();
+  const uint64_t tid = getthid();
 
   char file_path[256];
   // spinning and waiting for all threads to start
