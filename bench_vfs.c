@@ -66,7 +66,7 @@ void *worker_thread_vfs(void *_ctx) {
     fdqueue_push(fdqueue, (fd_mmapaddr_tuple_t){.fd = fd, .mmapaddr = NULL});
   }
 
-  for (fd_mmapaddr_tuple_t *iter = fdqueue_begin(fdqueue);
+  for (const fd_mmapaddr_tuple_t *iter = fdqueue_begin(fdqueue);
        iter != fdqueue_end(fdqueue); ++iter) {
     const int fd = iter->fd;
     if (flags & VERBOSE) {

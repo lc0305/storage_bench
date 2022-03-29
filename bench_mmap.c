@@ -79,7 +79,7 @@ void *worker_thread_mmap(void *_ctx) {
       clock_gettime(CLOCK_MONOTONIC, &stop);
   }
 
-  for (fd_mmapaddr_tuple_t *iter = fdqueue_begin(fdqueue);
+  for (const fd_mmapaddr_tuple_t *iter = fdqueue_begin(fdqueue);
        iter != fdqueue_end(fdqueue); ++iter) {
     fd_mmapaddr_tuple = *iter;
     if (flags & VERBOSE) {
