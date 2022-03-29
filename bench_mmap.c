@@ -54,6 +54,7 @@ void *worker_thread_mmap(void *_ctx) {
   const uint64_t tid = getthid();
 
   char file_path[256];
+  char log_buf[512];
   fd_mmapaddr_tuple_t fd_mmapaddr_tuple;
   size_t i;
   // spinning and waiting for all threads to start
@@ -66,14 +67,17 @@ void *worker_thread_mmap(void *_ctx) {
 
     sprintf(file_path, "./files/bench-%lu", i);
 
-    printf("tid %d is now writing %s.\n", tid, file_path);
-    fflush(stdout);
+    const int flags = bench_args.flags;
+
+    if (flags & VERBOSE) {
+      write(STDOUT_FILENO, log_buf,
+            sprintf(log_buf, "tid %llu is now writing %s.\n", tid, file_path));
+    }
 
     const int ret =
         write_file(file_path, buf, bench_args.file_size, &fd_mmapaddr_tuple);
     if (ret < 0)
       goto err;
-    const int flags = bench_args.flags;
     if (close_file(fd_mmapaddr_tuple.fd, fd_mmapaddr_tuple.mmapaddr,
                    bench_args.file_size, flags) < 0)
       goto err;

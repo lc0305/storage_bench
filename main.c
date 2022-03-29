@@ -105,10 +105,12 @@ static inline void print_config(const bench_args_t *const bench_args) {
     printf("Direct I/O enabled.\n");
   if (bench_args->flags & OPEN_SYNC)
     printf("Sync I/O enabled.\n");
-  if (bench_args->flags & CLOSE_FSYNC)
-    printf("FSync before close enabled.\n");
   if (bench_args->flags & CLOSE_MSYNC)
     printf("MSync before unmap enabled.\n");
+  if (bench_args->flags & CLOSE_FSYNC)
+    printf("FSync before close enabled.\n");
+  if (bench_args->flags & VERBOSE)
+    printf("**VERBOSE MODE ENABLED**\n");
   fflush(stdout);
 }
 
@@ -188,5 +190,8 @@ int main(const int argc, char *const *const argv) {
   void *(*worker_thread)(void *) = worker_thread_vfs;
   if (bench_args.flags & WRITE_MMAP)
     worker_thread = worker_thread_mmap;
-  return run_bench(worker_thread);
+  const int ret = run_bench(worker_thread);
+  if (bench_args.flags & VERBOSE)
+    print_config(&bench_args);
+  return ret;
 }
