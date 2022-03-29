@@ -127,6 +127,9 @@ uint8_t *buf = NULL;
  **/
 static inline int run_bench(void *(*worker_thread)(void *)) {
   srand(time(NULL));
+
+  mkdirat(AT_FDCWD, "./files", S_IRWXU | S_IRWXG | S_IROTH);
+
   buf = (uint8_t *)mmap(NULL, bench_args.file_size, PROT_READ | PROT_WRITE,
                         MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
