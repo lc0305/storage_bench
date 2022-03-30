@@ -155,21 +155,23 @@ static inline int run_bench(void *(*worker_thread)(void *)) {
   // trigger page fault
   // and insert random numbers to alleviate the problem
   // of zero store optimzations
-  for (size_t i = 0; i < bench_args.file_size; i += PAGE_SIZE) {
+  for (size_t i = 0; i < bench_args.file_size; ++i) {
     buf[i] = ((uint8_t)rand());
   }
 
-  for (int i = 1; i < bench_args.num_threads; ++i) {
+  // create I/O worker threads
+  for (int i = 0; i < bench_args.num_threads; ++i) {
     pthread_t tid;
     if (pthread_create(&tid, NULL, worker_thread, NULL) != 0)
       goto err;
     threads[i] = tid;
   }
 
+  // go start spinning threads
   atomic_store_explicit(&is_started, true, memory_order_relaxed);
-  worker_thread(NULL);
 
-  for (int i = 1; i < bench_args.num_threads; ++i) {
+  // sync wait for I/O worker threads to finish
+  for (int i = 0; i < bench_args.num_threads; ++i) {
     if (pthread_join(threads[i], NULL) != 0)
       goto err;
   }
